@@ -388,11 +388,11 @@ $SupportedWindowsGA | ForEach-Object {
                 $assignments = @()
                 
                 # Populate the assignments array based on group IDs
-                foreach ($groupId in $windowsupdatering.assignments.target.groupid) {
+                foreach ($target in $windowsupdatering.assignments.target) {
                     $assignment = @{
                         target = @{
-                            '@odata.type' = "#microsoft.graph.groupAssignmentTarget"
-                            groupId = $groupId
+                            '@odata.type' = $target.'@odata.type'
+                            groupId = $target.groupid
                             deviceAndAppManagementAssignmentFilterId = $filter.id
                             deviceAndAppManagementAssignmentFilterType = "include"
                         }
