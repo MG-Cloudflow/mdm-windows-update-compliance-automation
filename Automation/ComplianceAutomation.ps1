@@ -38,15 +38,13 @@
     Creation Date:  08/06/2024
     Purpose/Change: Demo Version
 #>
-
-
 # Define some parameters and default values for the script
 $miAppId = ""  # Application ID for Azure AD
 $cpprefix = "CP-OS-Update"  # Prefix for compliance policy names
 $windowsupdateringname = "Windows Update Ring 1"  # Prefix for Windows Update ring names
 $OsNames = @("Win10", "Win11")  # Operating system names to process (default is Win10 if not stated)
 $osversion = "*"  # OS version (mandatory parameter, e.g., 22H2)
-$latestreleases = "1"  # Number of latest releases to consider (default is 2)
+$latestreleases = "1"  # Nfinumber of latest releases to consider (default is 2)
 
 # Log in to Azure AD using the provided application ID
 Write-Output "Connecting to azure via Connect-AzAccount -Identity -AccountId $miAppId..."
@@ -374,7 +372,7 @@ $SupportedWindowsGA | ForEach-Object {
             }
 "@
             Write-Output "Checcking Compliance Setting in $($complincepolicytoupdate.displayName)"
-            if ($Current_date -ge $deadline_date -and $osVersion.qualityUpdateVersion -ne $complincepolicytoupdate.osMinimumVersion) {
+            if ($Current_date -ge $deadline_date -and $osVersion.qualityUpdateVersion -ne $complincepolicytoupdate.osMinimumVersion -and $osversion.Preview -eq "False" -and $osversion.'Out-of-band'-eq "False") {
                 Write-Output "compliance pollicy to update Setting in $($complincepolicytoupdate.displayName)"
                 Patch-GraphData -graphToken $graphToken -url "https://graph.microsoft.com/beta/deviceManagement/deviceCompliancePolicies/$($complincepolicytoupdate.id)" -body $body
             } else {
@@ -388,11 +386,11 @@ $SupportedWindowsGA | ForEach-Object {
                 $assignments = @()
                 
                 # Populate the assignments array based on group IDs
-                foreach ($target in $windowsupdatering.assignments.target) {
+                foreach ($groupId in $windowsupdatering.assignments.target.groupid) {
                     $assignment = @{
                         target = @{
-                            '@odata.type' = $target.'@odata.type'
-                            groupId = $target.groupid
+                            '@odata.type' = "#microsoft.graph.groupAssignmentTarget"
+                            groupId = $groupId
                             deviceAndAppManagementAssignmentFilterId = $filter.id
                             deviceAndAppManagementAssignmentFilterType = "include"
                         }
@@ -449,18 +447,17 @@ $SupportedWindowsGA | ForEach-Object {
             
             # Populate the assignments array based on group IDs
             $assignments = @()
-            foreach ($target in $windowsupdatering.assignments.target) {
+            foreach ($groupId in $windowsupdatering.assignments.target.groupid) {
                 $assignment = @{
                     target = @{
-                        '@odata.type' = $target.'@odata.type'
-                        groupId = $target.groupid
+                        '@odata.type' = "#microsoft.graph.groupAssignmentTarget"
+                        groupId = $groupId
                         deviceAndAppManagementAssignmentFilterId = $filter.id
                         deviceAndAppManagementAssignmentFilterType = "include"
                     }
                 }
                 $assignments += $assignment
             }
-
 
             # Create the body object for assignments
             $bodyObject = @{
